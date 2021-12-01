@@ -19,10 +19,9 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBody;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTDocument1;
 
 import models.Person;
+import models.User;
 
 public class DOCXController {
-	static final String BASE_PATH = "E:\\Study\\IT\\NetworkDeveloping";
-	
 	XWPFDocument document;
 	XWPFStyles styles;
 	Person person;
@@ -160,7 +159,8 @@ public class DOCXController {
 	}
 	
 	static XWPFDocument getTemplateDocument() throws Exception {
-		File templateFile = new File(BASE_PATH, "Template" + ".docx");
+		Path templateFilePath = Paths.get(ConvertController.BASE_PATH, "Template" + ".docx");
+		File templateFile = templateFilePath.toFile();
 		FileInputStream inputStream = new FileInputStream(templateFile);
 		
 		return new XWPFDocument(inputStream);
@@ -184,14 +184,5 @@ public class DOCXController {
 		});
 		
 		return finalDocument;
-	}
-	
-	public static void save(XWPFDocument document, String fileName) throws Exception {
-		Path filePath = Paths.get(BASE_PATH, fileName + ".docx");
-		
-		FileOutputStream outputStream = new FileOutputStream(filePath.toFile());
-		document.write(outputStream);
-
-		System.out.println("Writing in: " + filePath);
 	}
 }

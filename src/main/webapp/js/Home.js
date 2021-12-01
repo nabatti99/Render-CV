@@ -1,20 +1,25 @@
-window.onload = () => {
-	console.log("Page loadded");
-	const fileInput = document.querySelector("#fileInput");
-	const dropArea = document.querySelector("#dropArea");
-	const button = dropArea.querySelector("#dropArea button");
-	const closeButton = dropArea.querySelector("#dropArea #close");
-	const message = dropArea.querySelector("#dropArea p#message");
-	const fileNames = dropArea.querySelector("#dropArea p#fileNames");
+const fileInput = document.querySelector("#fileInput");
+const dropArea = document.querySelector("#dropArea");
+const button = dropArea.querySelector("button");
+const percentArea = dropArea.querySelector("#percent");
+const percentElement = percentArea.querySelector("span");
+const closeButton = dropArea.querySelector("#dropArea #close");
+const message = dropArea.querySelector("#dropArea p#message");
+const fileNames = dropArea.querySelector("#dropArea p#fileNames");
 	
-	let files = new Array();
+let files = new Array();
 	
-	const updateUIStep1 = () => {
+const updateUIStep1 = () => {
 		message.textContent = "Or drag and drop here";
+		
+		percentArea.classList.add("hidden");
+		percentElement.textContent = "0%";
+		percentElement.className = "text-base text-xs leading-5 text-center font-medium text-white bg-indigo-500 h-full p-0.5 px-2 min-w-min";
 		
 		button.textContent = "Choose .xlxs file";
 		button.classList.replace("bg-red-500", "bg-green-500");
 		button.classList.replace("hover:bg-red-600", "hover:bg-green-600");
+		button.disabled = false;
 		button.onclick = () => fileInput.click();
 		
 		closeButton.classList.add("hidden");
@@ -24,9 +29,9 @@ window.onload = () => {
 		
 		fileNames.textContent = "Upload Microsoft Excel files";
 		files = new Array();
-	}
+}
 		
-	const updateUIStep2 = () => {
+const updateUIStep2 = () => {
 		message.textContent = "Click Upload Button below to start working";
 		
 		closeButton.classList.remove("hidden");
@@ -37,15 +42,21 @@ window.onload = () => {
 		button.onclick = handleUploadClicked;
 		
 		fileNames.textContent = files.map(file => file.name).join(", ");	
-	}
+}
 		
-	const handleFileChoosen = (event) => {
+const handleFileChoosen = (event) => {
 		console.log(event.target.files);
 		files = Array.from(event.target.files);
 		updateUIStep2();
-	}
+}
 	
-	const handleUploadClicked = () => {
+const handleUploadClicked = () => {
+		message.textContent = "Waiting for a few minutes...";
+		percentArea.classList.remove("hidden");
+		
+		button.disabled = true;
+		button.textContent = "Uploading";
+		
 		let percent = 0;
 		
 		const uploadPromises = new Array();
@@ -55,7 +66,8 @@ window.onload = () => {
 				.then(res => {
 					console.log(res);
 					percent += 100 / files.length;
-					console.log(percent);
+					percentElement.textContent = `${percent}%`;
+					percentElement.style.width = `${percent}%`;
 				})
 				.catch(error => {
 					console.log(error);
@@ -66,21 +78,29 @@ window.onload = () => {
 		
 		Promise.all(uploadPromises)
 		.then(responses => {
-			alert("done");
-			button.textContent = "Done";
+			button.textContent = "Another upload";
+			button.disabled = false;
 			button.onclick = updateUIStep1;
+			
+			percentElement.textContent = "Upload Successfull";
+			percentElement.classList.replace("bg-indigo-500", "bg-green-500");
+			
+			message.textContent = "Your work is shown at History section"
 		})
-	}
+		.catch(error => {
+			percentElement.textContent = error.message;
+			percentElement.classList.replace("bg-indigo-500", "bg-red-500");
+		});
+}
 	
-	const uploadFile = (file) => {
+const uploadFile = (file) => {
 		const formData = new FormData();
 		formData.append("file", file);
 
 		return axios.post("./Home", formData, {
 			headers: { "Content-Type": "multipart/form-data" }
 		});
-	}
-	
-	closeButton.onclick = updateUIStep1;
-	updateUIStep1();
 }
+	
+closeButton.onclick = updateUIStep1;
+updateUIStep1();

@@ -1,3 +1,9 @@
+<%@page import="java.text.SimpleDateFormat"%>
+<%@page import="java.text.DateFormat"%>
+<%@page import="models.Document"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="models.User"%>
+<%@page import="controllers.AuthenticationController"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <!DOCTYPE html>
@@ -6,9 +12,27 @@
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 	<link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
-	<title>Render CV</title>
+	<script defer src="https://unpkg.com/axios/dist/axios.min.js"></script>
+	<script defer src="./js/Authentication.js"></script>
+	<title>History</title>
 </head>
 <body class="relative bg-white">
+
+	<%
+		User user = null;
+		try {
+			String idToken = AuthenticationController.getIdToken(request.getCookies());
+			user = new User(idToken);
+			
+		} catch (Exception e) {
+			Cookie cookie = new Cookie("idToken", "");
+			cookie.setMaxAge(0);
+			response.addCookie(cookie);
+			response.sendRedirect("./Auth");
+			e.printStackTrace();
+		}
+	%>
+
 	<div class="max-w-7xl mx-auto px-4 sm:px-6">
 	    <div class="flex justify-between items-center border-b-2 border-gray-100 py-6 md:justify-start md:space-x-10">
 	      <div class="flex justify-start lg:w-0 lg:flex-1">
@@ -27,20 +51,20 @@
 	        </button>
 	      </div>
 	      <nav class="hidden md:flex space-x-10">
-	        <a href="./" class="text-base font-medium text-gray-500 hover:text-gray-900">
+	        <a href="./Home" class="text-base font-medium text-gray-500 hover:text-gray-900">
 	          Home
 	        </a>
-	        <a href="./History" class="text-base font-medium text-gray-500 hover:text-gray-900">
+	        <a href="./History" class="text-base font-medium text-indigo-500 hover:text-indigo-900">
 	          History
 	        </a>
 	      </nav>
 	      <div class="hidden md:flex items-center justify-end md:flex-1 lg:w-0">
-	        <a href="#" class="whitespace-nowrap text-base font-medium text-gray-500 hover:text-gray-900">
-	          Sign in
-	        </a>
-	        <a href="#" class="ml-8 whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-	          Sign up
-	        </a>
+	        <span class="whitespace-nowrap text-base font-medium text-gray-500">
+	          <%= (user != null) ? user.email : null %>
+	        </span>
+	        <button class="ml-8 whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 sign-out-btn">
+	          Sign out
+	        </button>
 	      </div>
 	    </div>
 	
@@ -60,44 +84,76 @@
 		              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
 		                Status
 		              </th>
-		              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-		                Available
-		              </th>
 		              <th scope="col" class="relative px-6 py-3">
 		                <span class="sr-only">Tools</span>
 		              </th>
 		            </tr>
 		          </thead>
 		          <tbody class="bg-white divide-y divide-gray-200">
-		            <tr>
-		              <td class="px-6 py-4 whitespace-nowrap">
-		                <div class="flex items-center">
-		                  <div>
-		                    <div class="text-sm font-medium text-gray-900">
-		                      Hugo CVs
-		                    </div>
-		                    <div class="text-sm text-gray-500">
-		                      12.000 KB
-		                    </div>
-		                  </div>
-		                </div>
-		              </td>
-		              <td class="px-6 py-4 whitespace-nowrap">
-		                <div class="text-sm text-gray-900">11:20 PM</div>
-		                <div class="text-sm text-gray-500">22-11-2021</div>
-		              </td>
-		              <td class="px-6 py-4 whitespace-nowrap">
-		                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-		                  Active
-		                </span>
-		              </td>
-		              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-		                In 5 days
-		              </td>
-		              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
-		                <a href="#" class="text-indigo-600 hover:text-indigo-900">Download</a>
-		              </td>
-		            </tr>
+		            
+		            <% ArrayList<Document> documents = (ArrayList<Document>) session.getAttribute("documents"); %>
+		            
+		            <% if (documents.size() == 0) {%>
+		            		<tr>
+				              <td class="px-6 py-4 whitespace-nowrap" colspan="4">
+				                <div class="flex items-center justify-center">
+				                  <div>
+				                    <div class="text-base font-medium text-gray-300">
+				                      Oh, Nothing here!
+				                    </div>
+				                  </div>
+				                </div>
+				              </td>
+				            </tr>
+		            <% } %>
+		            	
+		            <% for (Document document : documents) { %>
+		            		<tr>
+				              <td class="px-6 py-4 whitespace-nowrap">
+				                <div class="flex items-center">
+				                  <div>
+				                    <div class="text-sm font-medium text-gray-900">
+				                      <%= document.name %>
+				                    </div>
+				                  </div>
+				                </div>
+				              </td>
+				              <td class="px-6 py-4 whitespace-nowrap">
+				              	<%
+				              		String dateString = (new SimpleDateFormat("hh:mm:ss aa")).format(document.timestamp.toDate());
+				              		String timeString = (new SimpleDateFormat("dd-MM-yyyy")).format(document.timestamp.toDate());
+				              	%>
+				                <div class="text-sm font-medium text-gray-900"><%= dateString %></div>
+				                <div class="text-sm text-gray-500"><%= timeString %></div>
+				              </td>
+				              <td class="px-6 py-4 whitespace-nowrap">
+				              	<%if (document.status.equals(Document.INITIATING_STATUS)) { %>
+					              			<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+							                  Initiating
+							                </span>
+												<%} else if (document.status.equals(Document.RENDERING_STATUS) || document.status.equals(Document.UPLOADING_STATUS)) { %>
+				              				<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
+							                  Rendering
+							                </span>
+				              	<%} else if (document.status.equals(Document.DONE_STATUS)) { %>
+															<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+							                  Active
+							                </span>
+												<%} else if (document.status.equals(Document.ERROR_STATUS)) { %>
+															<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+							                  Error
+							                </span>
+				              	<%}%>
+				              </td>
+				              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+				                <% if(document.status.equals(Document.ERROR_STATUS)) { %>
+				                	<a class="text-indigo-100">Download</a>
+				                <% } else {%>
+				                	<a href="<%= document.downloadLink %>" class="text-indigo-600 hover:text-indigo-900">Download</a>
+				                <% } %>
+				              </td>
+				            </tr>
+		            <%}%>
 		
 		            <!-- More people... -->
 		          </tbody>
@@ -128,7 +184,7 @@
 	        </div>
 	        <div class="mt-6">
 	          <nav class="grid gap-y-8">
-	            <a href="#" class="-m-3 p-3 flex items-center rounded-md hover:bg-gray-50">
+	            <a href="./Home" class="-m-3 p-3 flex items-center rounded-md hover:bg-gray-50">
 	              <!-- Heroicon name: outline/chart-bar -->
 	              <svg class="flex-shrink-0 h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
 	                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -138,7 +194,7 @@
 	              </span>
 	            </a>
 	
-	            <a href="#" class="-m-3 p-3 flex items-center rounded-md hover:bg-gray-50">
+	            <a href="./History" class="-m-3 p-3 flex items-center rounded-md hover:bg-gray-50">
 	              <!-- Heroicon name: outline/cursor-click -->
 	              <svg class="flex-shrink-0 h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
 	                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
@@ -152,14 +208,13 @@
 	      </div>
 	      <div class="py-6 px-5 space-y-6">
 	        <div>
-	          <a href="#" class="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-	            Sign up
-	          </a>
+	         	<span class="w-full flex items-center whitespace-nowrap px-4 py-2 text-base font-medium text-white bg-indigo-600">
+		          <%= (user != null) ? user.email : null %>
+		        </span>
 	          <p class="mt-6 text-center text-base font-medium text-gray-500">
-	            Existing member?
-	            <a href="#" class="text-indigo-600 hover:text-indigo-500">
-	              Sign in
-	            </a>
+	            <button class="text-indigo-600 hover:text-indigo-500 sign-out-btn">
+	              Sign out
+	            </button>
 	          </p>
 	        </div>
 	      </div>
