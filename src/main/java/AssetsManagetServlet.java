@@ -1,6 +1,8 @@
 
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,28 +13,27 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import controllers.AssetsController;
+
 @WebServlet("/Static/*")
 public class AssetsManagetServlet extends HttpServlet {
-	
-	private static String ASSET_PATH = "E:\\Study\\IT\\NetworkDeveloping\\Render CV\\src\\main\\webapp\\assets";
 	
     public AssetsManagetServlet() {
         super();
     }
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String fileName = request.getPathInfo();
+		String filePath = request.getPathInfo();
 		
-		try {			
-			if (fileName == null)
+		try {
+			
+			if (filePath == null)
 				throw new Exception("Not found the fileName param");
 			
-			Path filePath = Paths.get(ASSET_PATH, fileName);
-			if (!Files.exists(filePath) || (filePath.toRealPath().compareTo(filePath) > 0))
-				throw new Exception("Not Found" + filePath.toRealPath());
+			Path assetPath = AssetsController.getAsset(filePath);
 			
 			response.setContentType("*/*");
-			response.getOutputStream().write(Files.readAllBytes(filePath));
+			response.getOutputStream().write(Files.readAllBytes(assetPath));
 			
 		} catch (Exception e) {
 			e.printStackTrace();

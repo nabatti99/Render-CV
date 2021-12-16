@@ -1,6 +1,9 @@
 package controllers;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.URL;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.Firestore;
@@ -22,7 +25,9 @@ public class FirebaseController {
 	
 	private static FirebaseApp initiateFirebaseApp() throws Exception {
 		
-		FileInputStream serviceAccount = new FileInputStream("E:\\Study\\IT\\NetworkDeveloping\\Render CV\\src\\main\\serviceAccountKey.json");
+		URL serviceAccountURL = FirebaseController.class.getResource("/controllers/serviceAccountKey.json");
+		File serviceAccountFile = new File(serviceAccountURL.toURI());
+		FileInputStream serviceAccount = new FileInputStream(serviceAccountFile);
 		
 		FirebaseOptions options = new FirebaseOptions.Builder()
 				.setCredentials(GoogleCredentials.fromStream(serviceAccount))

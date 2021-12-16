@@ -12,7 +12,7 @@ public class Document {
 	public String documentId;
 	public String name;
 	public String status = INITIATING_STATUS;
-	public String downloadLink;
+	public String downloadLink = "#";
 	public Timestamp timestamp;
 	
 	public Document(String name) {

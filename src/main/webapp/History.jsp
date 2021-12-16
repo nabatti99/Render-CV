@@ -128,7 +128,7 @@
 				              </td>
 				              <td class="px-6 py-4 whitespace-nowrap">
 				              	<%if (document.status.equals(Document.INITIATING_STATUS)) { %>
-					              			<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+					              			<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
 							                  Initiating
 							                </span>
 												<%} else if (document.status.equals(Document.RENDERING_STATUS) || document.status.equals(Document.UPLOADING_STATUS)) { %>
@@ -146,7 +146,7 @@
 				              	<%}%>
 				              </td>
 				              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
-				                <% if(document.status.equals(Document.ERROR_STATUS)) { %>
+				                <% if(!document.status.equals(Document.DONE_STATUS)) { %>
 				                	<a class="text-indigo-100">Download</a>
 				                <% } else {%>
 				                	<a href="<%= document.downloadLink %>" class="text-indigo-600 hover:text-indigo-900">Download</a>

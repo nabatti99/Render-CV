@@ -47,7 +47,8 @@ public class FirestoreController {
 		document.timestamp = documentSnapshot.getCreateTime();
 		
 		try {
-			document.downloadLink = StorageController.getDownloadLink(user, document).toString();			
+			if (document.status.equals(Document.DONE_STATUS))
+				document.downloadLink = StorageController.getDownloadLink(user, document).toString();			
 		} catch (Exception e) {
 			e.printStackTrace();
 			

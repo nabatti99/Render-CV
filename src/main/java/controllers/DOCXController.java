@@ -159,7 +159,7 @@ public class DOCXController {
 	}
 	
 	static XWPFDocument getTemplateDocument() throws Exception {
-		Path templateFilePath = Paths.get(ConvertController.BASE_PATH, "Template" + ".docx");
+		Path templateFilePath = AssetsController.getAsset("/Template.docx");
 		File templateFile = templateFilePath.toFile();
 		FileInputStream inputStream = new FileInputStream(templateFile);
 		

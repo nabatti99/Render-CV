@@ -36,7 +36,7 @@ public class HomeServlet extends HttpServlet {
         super();
     }
 
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {		
 		response.sendRedirect("Home.jsp");
 	}
 
@@ -66,15 +66,10 @@ public class HomeServlet extends HttpServlet {
 			
 			Document document = FirestoreController.addNewDocument(user, part.getSubmittedFileName().replaceAll(".xlsx", "") + "_RenderCV.docx");
 			
-			ConvertController convertingJob = new ConvertController(part.getInputStream(), user, document);
-			Path documentPath = convertingJob.save();
-			System.out.println("Wrote in: " + documentPath);
+			ConvertController convertController = new ConvertController(part.getInputStream(), user, document);
+			Thread job = convertController.createJob();
 			
-			URL downloadLink = StorageController.uploadDocument(documentPath, user, document);
-			document.downloadLink = downloadLink.toString();
-			
-			document.status = Document.DONE_STATUS;
-			FirestoreController.updateDocument(user, document);
+			job.start();
 			
 		} catch (Exception e) {
 			e.printStackTrace();
